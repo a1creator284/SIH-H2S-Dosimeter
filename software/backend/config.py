@@ -23,6 +23,16 @@ IS_PRODUCTION = APP_ENV in ("production", "prod")
 # SQLite for dev (zero-config); override with a PostgreSQL URL in production.
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./h2s_dosimeter.db")
 
+# ── Demo bootstrap ──────────────────────────────────────────
+# A brand-new deployment has an EMPTY workers table, so the mobile app has
+# nothing to select and shows "No active workers found". When enabled (the
+# default) startup creates a single demo worker — but ONLY if the roster is
+# completely empty, so a real roster is never touched. See demo_seed.py.
+# Set SEED_DEMO_WORKER=false to disable.
+SEED_DEMO_WORKER = os.getenv("SEED_DEMO_WORKER", "true").strip().lower() not in (
+    "0", "false", "no", "off",
+)
+
 # ── JWT / Auth ──────────────────────────────────────────────
 # Dev-only fallback secret. It is intentionally obvious that it is NOT a secret;
 # production must supply its own via the SECRET_KEY env var.

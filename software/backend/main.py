@@ -51,6 +51,22 @@ async def lifespan(app: FastAPI):
             print("[STARTUP] Default admin created: admin / admin123")
         else:
             print("[STARTUP] Database ready.")
+
+        # A deployment with an empty `workers` table leaves the mobile app with
+        # nothing to select ("No active workers found"). Bootstrap one demo
+        # worker — idempotent, and skipped the moment any worker exists, so a
+        # real roster is never modified. See demo_seed.py.
+        try:
+            from demo_seed import DEMO_WORKER, ensure_demo_worker
+            if ensure_demo_worker(db):
+                print(f"[STARTUP] Demo worker created: {DEMO_WORKER['worker_id']}"
+                      f" ({DEMO_WORKER['full_name']}) — roster was empty.")
+            else:
+                print("[STARTUP] Worker roster present — demo seed skipped.")
+        except Exception as e:                                  # noqa: BLE001
+            # Never let a seeding problem stop the API from serving.
+            db.rollback()
+            log.error("Demo-worker seed failed: %s", e)
     finally:
         db.close()
     yield
